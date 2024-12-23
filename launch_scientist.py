@@ -233,7 +233,7 @@ def do_idea(
                 paper_text = load_paper(f"{folder_name}/{idea['Name']}.pdf")
                 review = perform_review(
                     paper_text,
-                    model="gpt-4o-2024-05-13",
+                    model="gpt-4o-mini",
                     client=openai.OpenAI(),
                     num_reflections=5,
                     num_fs_examples=1,
@@ -259,7 +259,7 @@ def do_idea(
                 paper_text = load_paper(f"{folder_name}/{idea['Name']}_improved.pdf")
                 review = perform_review(
                     paper_text,
-                    model="gpt-4o-2024-05-13",
+                    model="gpt-4o-mini",
                     client=openai.OpenAI(),
                     num_reflections=5,
                     num_fs_examples=1,
