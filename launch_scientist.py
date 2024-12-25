@@ -1,4 +1,5 @@
-import argparse
+import hydra
+from omegaconf import DictConfig
 import json
 import multiprocessing
 import openai
@@ -21,75 +22,13 @@ from ai_scientist.perform_writeup import perform_writeup, generate_latex
 
 NUM_REFLECTIONS = 3
 
-
 def print_time():
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Run AI scientist experiments")
-    parser.add_argument(
-        "--skip-idea-generation",
-        action="store_true",
-        help="Skip idea generation and load existing ideas",
-    )
-    parser.add_argument(
-        "--skip-novelty-check",
-        action="store_true",
-        help="Skip novelty check and use existing ideas",
-    )
-    # add type of experiment (nanoGPT, Boston, etc.)
-    parser.add_argument(
-        "--experiment",
-        type=str,
-        default="nanoGPT",
-        help="Experiment to run AI Scientist on.",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="claude-3-5-sonnet-20240620",
-        choices=AVAILABLE_LLMS,
-        help="Model to use for AI Scientist.",
-    )
-    parser.add_argument(
-        "--writeup",
-        type=str,
-        default="latex",
-        choices=["latex"],
-        help="What format to use for writeup",
-    )
-    parser.add_argument(
-        "--parallel",
-        type=int,
-        default=0,
-        help="Number of parallel processes to run. 0 for sequential execution.",
-    )
-    parser.add_argument(
-        "--improvement",
-        action="store_true",
-        help="Improve based on reviews.",
-    )
-    parser.add_argument(
-        "--gpus",
-        type=str,
-        default=None,
-        help="Comma-separated list of GPU IDs to use (e.g., '0,1,2'). If not specified, all available GPUs will be used.",
-    )
-    parser.add_argument(
-        "--num-ideas",
-        type=int,
-        default=50,
-        help="Number of ideas to generate",
-    )
-    return parser.parse_args()
-
 
 def get_available_gpus(gpu_ids=None):
     if gpu_ids is not None:
         return [int(gpu_id) for gpu_id in gpu_ids.split(",")]
     return list(range(torch.cuda.device_count()))
-
 
 def worker(
         queue,
@@ -122,7 +61,6 @@ def worker(
         print(f"Completed idea: {idea['Name']}, Success: {success}")
     print(f"Worker {gpu_id} finished.")
 
-
 def do_idea(
         base_dir,
         results_dir,
@@ -145,7 +83,6 @@ def do_idea(
         baseline_results = json.load(f)
     baseline_results = {k: v["means"] for k, v in baseline_results.items()}
     exp_file = osp.join(folder_name, "experiment.py")
-    vis_file = osp.join(folder_name, "plot.py")
     notes = osp.join(folder_name, "notes.txt")
     with open(notes, "w") as f:
         f.write(f"# Title: {idea['Title']}\n")
@@ -164,7 +101,7 @@ def do_idea(
         print_time()
         print(f"*Starting idea: {idea_name}*")
         ## PERFORM EXPERIMENTS
-        fnames = [exp_file, vis_file, notes]
+        fnames = [exp_file, notes]
         io = InputOutput(
             yes=True, chat_history_file=f"{folder_name}/{idea_name}_aider.txt"
         )
@@ -283,31 +220,29 @@ def do_idea(
             sys.stderr = original_stderr
             log.close()
 
-
-if __name__ == "__main__":
-    args = parse_arguments()
-
+@hydra.main(config_path="configs", config_name="main")
+def main(cfg: DictConfig):
     # Check available GPUs and adjust parallel processes if necessary
-    available_gpus = get_available_gpus(args.gpus)
-    if args.parallel > len(available_gpus):
+    available_gpus = get_available_gpus(cfg.gpus)
+    if cfg.parallel > len(available_gpus):
         print(
-            f"Warning: Requested {args.parallel} parallel processes, but only {len(available_gpus)} GPUs available. Adjusting to {len(available_gpus)}."
+            f"Warning: Requested {cfg.parallel} parallel processes, but only {len(available_gpus)} GPUs available. Adjusting to {len(available_gpus)}."
         )
-        args.parallel = len(available_gpus)
+        cfg.parallel = len(available_gpus)
 
     print(f"Using GPUs: {available_gpus}")
 
     # Create client
-    client, client_model = create_client(args.model)
+    client, client_model = create_client(cfg.model)
 
-    base_dir = osp.join("templates", args.experiment)
-    results_dir = osp.join("results", args.experiment)
+    base_dir = osp.join("templates", cfg.experiment)
+    results_dir = osp.join("results", cfg.experiment)
     ideas = generate_ideas(
         base_dir,
         client=client,
         model=client_model,
-        skip_generation=args.skip_idea_generation,
-        max_num_generations=args.num_ideas,
+        skip_generation=cfg.skip_idea_generation,
+        max_num_generations=cfg.num_ideas,
         num_reflections=NUM_REFLECTIONS,
     )
     ideas = check_idea_novelty(
@@ -321,16 +256,15 @@ if __name__ == "__main__":
         json.dump(ideas, f, indent=4)
 
     novel_ideas = [idea for idea in ideas if idea["novel"]]
-    # novel_ideas = list(reversed(novel_ideas))
 
-    if args.parallel > 0:
-        print(f"Running {args.parallel} parallel processes")
+    if cfg.parallel > 0:
+        print(f"Running {cfg.parallel} parallel processes")
         queue = multiprocessing.Queue()
         for idea in novel_ideas:
             queue.put(idea)
 
         processes = []
-        for i in range(args.parallel):
+        for i in range(cfg.parallel):
             gpu_id = available_gpus[i % len(available_gpus)]
             p = multiprocessing.Process(
                 target=worker,
@@ -338,11 +272,11 @@ if __name__ == "__main__":
                     queue,
                     base_dir,
                     results_dir,
-                    args.model,
+                    cfg.model,
                     client,
                     client_model,
-                    args.writeup,
-                    args.improvement,
+                    cfg.writeup,
+                    cfg.improvement,
                     gpu_id,
                 ),
             )
@@ -351,7 +285,7 @@ if __name__ == "__main__":
             processes.append(p)
 
         # Signal workers to exit
-        for _ in range(args.parallel):
+        for _ in range(cfg.parallel):
             queue.put(None)
 
         for p in processes:
@@ -366,14 +300,17 @@ if __name__ == "__main__":
                     base_dir,
                     results_dir,
                     idea,
-                    args.model,
+                    cfg.model,
                     client,
                     client_model,
-                    args.writeup,
-                    args.improvement,
+                    cfg.writeup,
+                    cfg.improvement,
                 )
                 print(f"Completed idea: {idea['Name']}, Success: {success}")
             except Exception as e:
                 print(f"Failed to evaluate idea {idea['Name']}: {str(e)}")
 
     print("All ideas evaluated.")
+
+if __name__ == "__main__":
+    main()

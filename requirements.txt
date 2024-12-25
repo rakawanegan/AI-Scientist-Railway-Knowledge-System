@@ -1,13 +1,9 @@
-# LLM APIs
-anthropic
 aider-chat
 backoff
 openai
-# Viz
 matplotlib
 pypdf
 pymupdf4llm
-# Common Requirements
 torch
 numpy
 transformers
@@ -15,3 +11,25 @@ datasets
 tiktoken
 wandb
 tqdm
+hydra-core
+omegaconf
+janome
+wordcloud
+requests
+beautifulsoup4
+faiss-gpu
+fugashi
+ipadic
+openai
+langchain
+langchain-community
+langchain-openai
+openai
+rank-bm25
+unidic_lite
+whoosh
+lightrag-hku
+aioboto3
+ollama
+tiktoken
+nano_vectordb
