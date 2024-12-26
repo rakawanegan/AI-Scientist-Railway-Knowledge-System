@@ -1,10 +1,74 @@
 import csv
-from typing import List, Dict
+from typing import List, Dict, Union
 import json
 import os.path as osp
 from pymupdf4llm import to_markdown
 
-def read_related_indices(index_file: str) -> List[Dict[str, str]]:
+from ai_scientist.llm import get_response_from_llm, extract_json_between_markers, create_client, AVAILABLE_LLMS
+
+
+idea_first_prompt = """{task_description}
+<experiment.py>
+{code}
+</experiment.py>
+
+Here are the ideas that you have already generated:
+
+'''
+{prev_ideas_string}
+'''
+
+Come up with the next impactful and creative idea for research experiments and directions you can feasibly investigate with the code provided.
+Note that you will not have access to any additional resources or datasets.
+Make sure any idea is not overfit the specific training dataset or model, and has wider significance.
+
+Respond in the following format:
+
+THOUGHT:
+<THOUGHT>
+
+NEW IDEA JSON:
+```json
+<JSON>
+```
+
+In <THOUGHT>, first briefly discuss your intuitions and motivations for the idea. Detail your high-level plan, necessary design choices and ideal outcomes of the experiments. Justify how the idea is different from the existing ones.
+
+In <JSON>, provide the new idea in JSON format with the following fields:
+- "Name": A shortened descriptor of the idea. Lowercase, no spaces, underscores allowed.
+- "Title": A title for the idea, will be used for the report writing.
+- "Experiment": An outline of the implementation. E.g. which functions need to be added or modified, how results will be obtained, ...
+- "Interestingness": A rating from 1 to 10 (lowest to highest).
+- "Feasibility": A rating from 1 to 10 (lowest to highest).
+- "Novelty": A rating from 1 to 10 (lowest to highest).
+
+Be cautious and realistic on your ratings.
+This JSON will be automatically parsed, so ensure the format is precise.
+You will have {num_reflections} rounds to iterate on the idea, but do not need to use them all.
+"""
+
+idea_reflection_prompt = """Round {current_round}/{num_reflections}.
+In your thoughts, first carefully consider the quality, novelty, and feasibility of the idea you just created.
+Include any other factors that you think are important in evaluating the idea.
+Ensure the idea is clear and concise, and the JSON is the correct format.
+Do not make things overly complicated.
+In the next attempt, try and refine and improve your idea.
+Stick to the spirit of the original idea unless there are glaring issues.
+
+Respond in the same format as before:
+THOUGHT:
+<THOUGHT>
+
+NEW IDEA JSON:
+```json
+<JSON>
+```
+
+If there is nothing to improve, simply repeat the previous JSON EXACTLY after the thought and include "I am done" at the end of the thoughts but before the JSON.
+ONLY INCLUDE "I am done" IF YOU ARE MAKING NO MORE CHANGES."""
+
+
+def search_for_papers(index_file: str) -> List[Dict[str, str]]:
     """
     Reads and parses the Index.csv file containing related document indices.
 
@@ -64,33 +128,109 @@ def read_pdf_content(pdf_path: str) -> str:
         print(f"An error occurred while reading {pdf_path}: {e}")
     return ""
 
-def generate_ideas(base_dir: str, filtered_indices: List[Dict[str, str]]) -> List[Dict[str, str]]:
-    """
-    Generate new ideas based on the filtered documents.
+'''
+Usage
+    ideas = generate_ideas(
+        base_dir,
+        client=client,
+        model=client_model,
+        skip_generation=cfg.skip_idea_generation,
+        max_num_generations=cfg.num_ideas,
+        num_reflections=NUM_REFLECTIONS,
+    )
+'''
+def generate_ideas(base_dir: str, client=None, model=None, skip_generation=False, max_num_generations=10, num_reflections=5) -> List[Dict[str, str]]:
 
-    Args:
-        base_dir (str): Base directory to save ideas.
-        filtered_indices (List[Dict[str, str]]): Filtered document indices.
+    if skip_generation:
+        # Load existing ideas from file
+        try:
+            with open(osp.join(base_dir, "ideas.json"), "r") as f:
+                ideas = json.load(f)
+            print("Loaded existing ideas:")
+            for idea in ideas:
+                print(idea)
+            return ideas
+        except FileNotFoundError:
+            print("No existing ideas found. Generating new ideas.")
+        except json.JSONDecodeError:
+            print("Error decoding existing ideas. Generating new ideas.")
 
-    Returns:
-        List[Dict[str, str]]: Generated ideas with additional metadata.
-    """
+    idea_str_archive = []
+    with open(osp.join(base_dir, "seed_ideas.json"), "r") as f:
+        seed_ideas = json.load(f)
+    for seed_idea in seed_ideas:
+        idea_str_archive.append(json.dumps(seed_idea))
+
+    with open(osp.join(base_dir, "experiment.py"), "r") as f:
+        code = f.read()
+
+    with open(osp.join(base_dir, "prompt.json"), "r") as f:
+        prompt = json.load(f)
+
+    idea_system_prompt = prompt["system"]
+
+    for _ in range(max_num_generations):
+        print()
+        print(f"Generating idea {_ + 1}/{max_num_generations}")
+        try:
+            prev_ideas_string = "\n\n".join(idea_str_archive)
+
+            msg_history = []
+            print(f"Iteration 1/{num_reflections}")
+            text, msg_history = get_response_from_llm(
+                idea_first_prompt.format(
+                    task_description=prompt["task_description"],
+                    code=code,
+                    prev_ideas_string=prev_ideas_string,
+                    num_reflections=num_reflections,
+                ),
+                client=client,
+                model=model,
+                system_message=idea_system_prompt,
+                msg_history=msg_history,
+            )
+            ## PARSE OUTPUT
+            json_output = extract_json_between_markers(text)
+            assert json_output is not None, "Failed to extract JSON from LLM output"
+            print(json_output)
+
+            # Iteratively improve task.
+            if num_reflections > 1:
+                for j in range(num_reflections - 1):
+                    print(f"Iteration {j + 2}/{num_reflections}")
+                    text, msg_history = get_response_from_llm(
+                        idea_reflection_prompt.format(
+                            current_round=j + 2, num_reflections=num_reflections
+                        ),
+                        client=client,
+                        model=model,
+                        system_message=idea_system_prompt,
+                        msg_history=msg_history,
+                    )
+                    ## PARSE OUTPUT
+                    json_output = extract_json_between_markers(text)
+                    assert (
+                            json_output is not None
+                    ), "Failed to extract JSON from LLM output"
+                    print(json_output)
+
+                    if "I am done" in text:
+                        print(f"Idea generation converged after {j + 2} iterations.")
+                        break
+
+            idea_str_archive.append(json.dumps(json_output))
+        except Exception as e:
+            print(f"Failed to generate idea: {e}")
+            continue
+
+    ## SAVE IDEAS
     ideas = []
-    for index in filtered_indices:
-        pdf_content = read_pdf_content(index['Path'])
-        if pdf_content:
-            idea = {
-                "Path": index['Path'],
-                "Title": index['Title'],
-                "Summary": index['Summary'],
-                "ExtractedContent": pdf_content,  # Full extracted content
-            }
-            ideas.append(idea)
-    # Save ideas to a JSON file
-    ideas_file = osp.join(base_dir, "generated_ideas.json")
-    with open(ideas_file, "w", encoding="utf-8") as f:
-        json.dump(ideas, f, indent=4, ensure_ascii=False)
-    print(f"Ideas saved to {ideas_file}")
+    for idea_str in idea_str_archive:
+        ideas.append(json.loads(idea_str))
+
+    with open(osp.join(base_dir, "ideas.json"), "w") as f:
+        json.dump(ideas, f, indent=4)
+
     return ideas
 
 def check_idea_novelty(ideas: List[Dict[str, str]], base_dir: str, client=None, model=None, max_num_iterations=10) -> List[Dict[str, str]]:
@@ -153,7 +293,7 @@ if __name__ == "__main__":
     BASE_DIR = "data/output"
 
     # Read the related indices
-    related_indices = read_related_indices(INDEX_FILE)
+    related_indices = search_for_papers(INDEX_FILE)
 
     # Display all indices
     if related_indices:

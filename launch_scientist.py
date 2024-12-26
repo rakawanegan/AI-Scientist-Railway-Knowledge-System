@@ -1,9 +1,11 @@
 import hydra
+from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 import json
 import multiprocessing
 import openai
 import os
+from dotenv import load_dotenv
 import os.path as osp
 import shutil
 import sys
@@ -20,7 +22,10 @@ from ai_scientist.perform_experiments import perform_experiments
 from ai_scientist.perform_review import perform_review, load_paper, perform_improvement
 from ai_scientist.perform_writeup import perform_writeup, generate_latex
 
+load_dotenv()
+
 NUM_REFLECTIONS = 3
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 def print_time():
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -235,8 +240,8 @@ def main(cfg: DictConfig):
     # Create client
     client, client_model = create_client(cfg.model)
 
-    base_dir = osp.join("templates", cfg.experiment)
-    results_dir = osp.join("results", cfg.experiment)
+    base_dir = osp.join(get_original_cwd(), "templates", cfg.experiment)
+    results_dir = osp.join(get_original_cwd(), "results", cfg.experiment)
     ideas = generate_ideas(
         base_dir,
         client=client,
