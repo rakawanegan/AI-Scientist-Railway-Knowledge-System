@@ -1,8 +1,0 @@
-experiment: railway_command
-gpus: null
-parallel: 2
-model: gpt-4o-mini
-num_ideas: 10
-skip_idea_generation: false
-writeup: latex
-improvement: true

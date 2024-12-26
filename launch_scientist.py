@@ -1,50 +1,54 @@
-import hydra
-from hydra.utils import get_original_cwd
-from omegaconf import DictConfig
 import json
 import multiprocessing
-import openai
 import os
-from dotenv import load_dotenv
 import os.path as osp
 import shutil
 import sys
 import time
+from datetime import datetime
+
+import hydra
+import openai
 import torch
 from aider.coders import Coder
 from aider.io import InputOutput
 from aider.models import Model
-from datetime import datetime
+from dotenv import load_dotenv
+from hydra.utils import get_original_cwd
+from omegaconf import DictConfig
 
-from ai_scientist.generate_ideas import generate_ideas, check_idea_novelty
-from ai_scientist.llm import create_client, AVAILABLE_LLMS
+from ai_scientist.generate_ideas import check_idea_novelty, generate_ideas
+from ai_scientist.llm import AVAILABLE_LLMS, create_client
 from ai_scientist.perform_experiments import perform_experiments
-from ai_scientist.perform_review import perform_review, load_paper, perform_improvement
-from ai_scientist.perform_writeup import perform_writeup, generate_latex
+from ai_scientist.perform_review import load_paper, perform_improvement, perform_review
+from ai_scientist.perform_writeup import generate_latex, perform_writeup
 
 load_dotenv()
 
 NUM_REFLECTIONS = 3
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
+
 def print_time():
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
 
 def get_available_gpus(gpu_ids=None):
     if gpu_ids is not None:
         return [int(gpu_id) for gpu_id in gpu_ids.split(",")]
     return list(range(torch.cuda.device_count()))
 
+
 def worker(
-        queue,
-        base_dir,
-        results_dir,
-        model,
-        client,
-        client_model,
-        writeup,
-        improvement,
-        gpu_id,
+    queue,
+    base_dir,
+    results_dir,
+    model,
+    client,
+    client_model,
+    writeup,
+    improvement,
+    gpu_id,
 ):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
     print(f"Worker {gpu_id} started.")
@@ -66,16 +70,17 @@ def worker(
         print(f"Completed idea: {idea['Name']}, Success: {success}")
     print(f"Worker {gpu_id} finished.")
 
+
 def do_idea(
-        base_dir,
-        results_dir,
-        idea,
-        model,
-        client,
-        client_model,
-        writeup,
-        improvement,
-        log_file=False,
+    base_dir,
+    results_dir,
+    idea,
+    model,
+    client,
+    client_model,
+    writeup,
+    improvement,
+    log_file=False,
 ):
     ## CREATE PROJECT FOLDER
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -225,6 +230,7 @@ def do_idea(
             sys.stderr = original_stderr
             log.close()
 
+
 @hydra.main(config_path="configs", config_name="main")
 def main(cfg: DictConfig):
     # Check available GPUs and adjust parallel processes if necessary
@@ -262,7 +268,6 @@ def main(cfg: DictConfig):
 
     novel_ideas = [idea for idea in ideas if idea["novel"]]
 
-
     for idea in novel_ideas:
         print(f"Processing idea: {idea['Name']}")
         try:
@@ -281,6 +286,7 @@ def main(cfg: DictConfig):
             print(f"Failed to evaluate idea {idea['Name']}: {str(e)}")
 
     print("All ideas evaluated.")
+
 
 if __name__ == "__main__":
     main()

@@ -3,16 +3,16 @@ import time
 from contextlib import contextmanager
 
 import pandas as pd
-from google.colab import userdata
 from langchain_openai import ChatOpenAI
-from src.main import evaluate_by_llm_with_criteria, make_agent, plot_tools_count
-from src.tool_component import tool_usage_tracker
-from src.utils import load_criteria_with_weights
 from tqdm import tqdm
+
+from .main import evaluate_by_llm_with_criteria, make_agent, plot_tools_count
+from .tool_component import tool_usage_tracker
+from .utils import load_criteria_with_weights
 
 
 def setup_environment(k, tool_configs, eval_configs, react_prompt):
-    os.environ["OPENAI_API_KEY"] = userdata.get("OPENAI_API_KEY")
+    os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     agent = make_agent(tool_configs, react_prompt, k, llm)
     criteria_with_weights = load_criteria_with_weights(eval_configs)

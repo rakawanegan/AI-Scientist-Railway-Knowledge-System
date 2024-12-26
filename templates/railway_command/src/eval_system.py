@@ -6,9 +6,10 @@ import pandas as pd
 import yaml
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from src.main import evaluate_by_llm_with_criteria
-from src.utils import load_criteria_with_weights
 from tqdm import tqdm
+
+from .main import evaluate_by_llm_with_criteria
+from .utils import load_criteria_with_weights
 
 
 def initialize_llm():
