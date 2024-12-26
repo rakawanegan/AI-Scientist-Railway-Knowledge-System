@@ -262,58 +262,23 @@ def main(cfg: DictConfig):
 
     novel_ideas = [idea for idea in ideas if idea["novel"]]
 
-    if cfg.parallel > 0:
-        print(f"Running {cfg.parallel} parallel processes")
-        queue = multiprocessing.Queue()
-        for idea in novel_ideas:
-            queue.put(idea)
 
-        processes = []
-        for i in range(cfg.parallel):
-            gpu_id = available_gpus[i % len(available_gpus)]
-            p = multiprocessing.Process(
-                target=worker,
-                args=(
-                    queue,
-                    base_dir,
-                    results_dir,
-                    cfg.model,
-                    client,
-                    client_model,
-                    cfg.writeup,
-                    cfg.improvement,
-                    gpu_id,
-                ),
+    for idea in novel_ideas:
+        print(f"Processing idea: {idea['Name']}")
+        try:
+            success = do_idea(
+                base_dir,
+                results_dir,
+                idea,
+                cfg.model,
+                client,
+                client_model,
+                cfg.writeup,
+                cfg.improvement,
             )
-            p.start()
-            time.sleep(150)
-            processes.append(p)
-
-        # Signal workers to exit
-        for _ in range(cfg.parallel):
-            queue.put(None)
-
-        for p in processes:
-            p.join()
-
-        print("All parallel processes completed.")
-    else:
-        for idea in novel_ideas:
-            print(f"Processing idea: {idea['Name']}")
-            try:
-                success = do_idea(
-                    base_dir,
-                    results_dir,
-                    idea,
-                    cfg.model,
-                    client,
-                    client_model,
-                    cfg.writeup,
-                    cfg.improvement,
-                )
-                print(f"Completed idea: {idea['Name']}, Success: {success}")
-            except Exception as e:
-                print(f"Failed to evaluate idea {idea['Name']}: {str(e)}")
+            print(f"Completed idea: {idea['Name']}, Success: {success}")
+        except Exception as e:
+            print(f"Failed to evaluate idea {idea['Name']}: {str(e)}")
 
     print("All ideas evaluated.")
 

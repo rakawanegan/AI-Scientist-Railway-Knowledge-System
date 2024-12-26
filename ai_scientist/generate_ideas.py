@@ -12,17 +12,17 @@ idea_first_prompt = """{task_description}
 {code}
 </experiment.py>
 
-Here are the ideas that you have already generated:
+以下は、これまでに生成されたアイデアです：
 
 '''
 {prev_ideas_string}
 '''
 
-Come up with the next impactful and creative idea for research experiments and directions you can feasibly investigate with the code provided.
-Note that you will not have access to any additional resources or datasets.
-Make sure any idea is not overfit the specific training dataset or model, and has wider significance.
+提供されたコードを使って実行可能な、次に影響力があり創造的な研究実験や方向性のアイデアを考えてください。
+追加のリソースやデータセットにはアクセスできないことに注意してください。
+どのアイデアも特定のトレーニングデータセットやモデルに過剰適合せず、広い意味での意義を持つようにしてください。
 
-Respond in the following format:
+以下の形式で回答してください：
 
 THOUGHT:
 <THOUGHT>
@@ -32,30 +32,32 @@ NEW IDEA JSON:
 <JSON>
 ```
 
-In <THOUGHT>, first briefly discuss your intuitions and motivations for the idea. Detail your high-level plan, necessary design choices and ideal outcomes of the experiments. Justify how the idea is different from the existing ones.
+<THOUGHT> では、まずアイデアの直感や動機について簡単に説明してください。
+アイデアの高レベルな計画、必要な設計選択、理想的な実験結果を詳述してください。
+また、このアイデアが既存のものとどのように異なるかを正当化してください。
 
-In <JSON>, provide the new idea in JSON format with the following fields:
-- "Name": A shortened descriptor of the idea. Lowercase, no spaces, underscores allowed.
-- "Title": A title for the idea, will be used for the report writing.
-- "Experiment": An outline of the implementation. E.g. which functions need to be added or modified, how results will be obtained, ...
-- "Interestingness": A rating from 1 to 10 (lowest to highest).
-- "Feasibility": A rating from 1 to 10 (lowest to highest).
-- "Novelty": A rating from 1 to 10 (lowest to highest).
+<JSON> では、次のフィールドを含むJSON形式で新しいアイデアを記載してください：
+- "Name": アイデアの簡潔な記述子。小文字、スペースなし、アンダースコアを許可。
+- "Title": アイデアのタイトル。レポート作成で使用されます。
+- "Experiment": 実装の概要。例：追加または変更が必要な関数、結果の取得方法、など。
+- "Interestingness": 1から10の範囲で評価（最低から最高）。
+- "Feasibility": 1から10の範囲で評価（最低から最高）。
+- "Novelty": 1から10の範囲で評価（最低から最高）。
 
-Be cautious and realistic on your ratings.
-This JSON will be automatically parsed, so ensure the format is precise.
-You will have {num_reflections} rounds to iterate on the idea, but do not need to use them all.
+評価は慎重かつ現実的に行ってください。
+このJSONは自動的に解析されるため、フォーマットが正確であることを確認してください。
+{num_reflections}回のラウンドでアイデアを繰り返し検討することができますが、すべてのラウンドを使用する必要はありません。
 """
 
-idea_reflection_prompt = """Round {current_round}/{num_reflections}.
-In your thoughts, first carefully consider the quality, novelty, and feasibility of the idea you just created.
-Include any other factors that you think are important in evaluating the idea.
-Ensure the idea is clear and concise, and the JSON is the correct format.
-Do not make things overly complicated.
-In the next attempt, try and refine and improve your idea.
-Stick to the spirit of the original idea unless there are glaring issues.
+idea_reflection_prompt = """ラウンド {current_round}/{num_reflections}。
+あなたが作成したアイデアの質、新規性、実現可能性を慎重に考慮してください。
+重要だと思う他の要素も評価に含めてください。
+アイデアが明確で簡潔であることを確認し、JSONが正しい形式であることを確保してください。
+物事を過度に複雑にしないでください。
+次の試行では、アイデアを改良し改善するように努めてください。
+重大な問題がない限り、元のアイデアの趣旨を守ってください。
 
-Respond in the same format as before:
+以前と同じ形式で回答してください：
 THOUGHT:
 <THOUGHT>
 
@@ -64,8 +66,10 @@ NEW IDEA JSON:
 <JSON>
 ```
 
-If there is nothing to improve, simply repeat the previous JSON EXACTLY after the thought and include "I am done" at the end of the thoughts but before the JSON.
-ONLY INCLUDE "I am done" IF YOU ARE MAKING NO MORE CHANGES."""
+改善すべき点がない場合は、思考の後に前回のJSONを正確に繰り返し、「I am done」を思考の最後に記載し、JSONの前に記載してください。
+変更を加えない場合にのみ「I am done」を含めてください。"""
+
+
 
 
 def search_for_papers(index_file: str) -> List[Dict[str, str]]:

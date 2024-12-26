@@ -4,7 +4,6 @@ hydra:
 
 experiment: "railway_command"
 gpus: null  # 使用したいGPUのIDをカンマ区切りで指定（例: "0,1"）。nullの場合はすべてのGPUを使用。
-parallel: 2  # 並列プロセスの数
 model: "gpt-4o-mini-2024-07-18"  # 使用するモデル名(ai_scientist/llm.pyで確認)
 num_ideas: 10  # 生成するアイデアの最大数
 skip_idea_generation: false  # アイデア生成をスキップする場合はtrue
