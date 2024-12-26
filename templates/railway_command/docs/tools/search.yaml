@@ -1,0 +1,50 @@
+name: DuckDuckGoWebSearcher
+description: |
+  ## 目的
+  このツールは、DuckDuckGoを使用して一般的な情報をウェブから検索するために使用します。  
+  プライバシーを重視しながら、迅速にウェブ上の情報を取得したい場合に最適です。
+
+  ## 使用する前の準備
+  - 検索したいキーワードやフレーズ（例: 「最新のAI技術」「鉄道業界のトレンド」）を明確にしてください。
+  - DuckDuckGoを利用可能な環境であることを確認してください。
+
+  ## 入力と出力
+  - **入力**: 
+    - 検索クエリとして、1つまたは複数のキーワードやフレーズを入力します。
+  - **出力**: 
+    - DuckDuckGoで検索した結果として、関連するウェブページのリストが返されます。
+    - 各結果には以下の情報が含まれます：
+      - ページタイトル
+      - ページリンク
+      - ページの短い説明文（サマリー）
+
+  ## 具体例
+  ### 入力例1: 最新のAI技術についての検索
+  - **入力**:  
+    「最新のAI技術」  
+
+  - **出力例**:  
+    ```
+    検索結果:
+    1. タイトル: The Future of AI Technology
+       リンク: https://example.com/future-ai
+       サマリー: Learn about the latest advancements in artificial intelligence, including GPT models and robotics.
+    2. タイトル: Top AI Trends in 2024
+       リンク: https://example.com/ai-trends
+       サマリー: Discover the top AI trends shaping the tech industry this year.
+    ```
+
+  ### 入力例2: 鉄道業界のトレンド
+  - **入力**:  
+    「鉄道業界のトレンド」  
+
+  - **出力例**:  
+    ```
+    検索結果:
+    1. タイトル: 2024年の鉄道業界の最新動向
+       リンク: https://example.com/railway-trends
+       サマリー: 鉄道業界の新技術や事例を紹介。
+    2. タイトル: 鉄道の持続可能な未来
+       リンク: https://example.com/sustainable-railways
+       サマリー: 環境に配慮した鉄道の取り組みについて解説。
+    ```

@@ -1,18 +1,92 @@
 [
   {
-    "Name": "adaptive_block_size",
-    "Title": "Adaptive Block Size: Dynamic Context Window Adjustment for Efficient Training",
-    "Experiment": "Modify the model to dynamically adjust its block size during training, starting with a smaller block size and gradually increasing it. This could potentially lead to faster initial training and better long-range dependency learning.",
-    "Interestingness": 6,
-    "Feasibility": 4,
-    "Novelty": 4
+      "Name": "adaptive_regulation_search",
+      "Title": "適応型規則検索: 規則・基準文書への柔軟なアクセス",
+      "Experiment": "鉄道技術基準や省令文書を高速に検索できるシステムを開発。ReActエージェントを活用し、自然言語の質問に対して適切な回答を提供。作業現場での利用シナリオを想定。",
+      "Interestingness": 8,
+      "Feasibility": 8,
+      "Novelty": 7,
+      "novel": true
   },
   {
-    "Name": "layerwise_learning_rates",
-    "Title": "Layer-wise Learning Rate Adaptation: Optimizing Training Dynamics in Transformer Models",
-    "Experiment": "Implement layer-wise learning rates, where each transformer layer has its own learning rate. Modify the configure_optimizers function to assign different learning rates to different layers, with deeper layers having lower learning rates. Compare the training dynamics, convergence speed, and final performance with the baseline model.",
-    "Interestingness": 4,
-    "Feasibility": 6,
-    "Novelty": 2
+      "Name": "incident_analysis_ai",
+      "Title": "事故分析AI: 類似事例検索とリスク評価システム",
+      "Experiment": "過去の事故報告データを活用し、類似事例を検索するシステムを開発。ベクトルデータベースを用いて、高速かつ正確な類似性評価を実現。さらに、リスク評価機能を追加し、意思決定のサポートを強化。",
+      "Interestingness": 9,
+      "Feasibility": 7,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "preventive_rule_suggestion",
+      "Title": "予防的規則提案: 事故防止のための規則改訂支援",
+      "Experiment": "生成AIを用いて、省令や基準文書に基づいた事故再発防止のための規則改訂案を自動生成するシステムを開発。過去の事故事例と現行の基準を分析し、改善点を提案する機能を実装。",
+      "Interestingness": 9,
+      "Feasibility": 6,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "training_assessment_ai",
+      "Title": "訓練評価AI: 技術向上を支援する生成AIシステム",
+      "Experiment": "鉄道業務に関連する訓練プログラムの自動評価システムを開発。LLMを用いて模擬問題を作成し、回答を採点。さらに、弱点分析と改善提案を提供し、訓練効果を向上させる。",
+      "Interestingness": 8,
+      "Feasibility": 7,
+      "Novelty": 7,
+      "novel": true
+  },
+  {
+      "Name": "command_center_optimization",
+      "Title": "指令室業務最適化: データ駆動型意思決定支援システム",
+      "Experiment": "鉄道指令室の意思決定を支援するシステムを開発。リアルタイムで運行状況や事故データを統合的に表示し、迅速な対応を可能にする。特に緊急時の判断に役立つ過去事例の関連付け機能を実装。",
+      "Interestingness": 9,
+      "Feasibility": 7,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "keyword_extraction_tool",
+      "Title": "キーワード抽出ツール: 文書分析の効率化",
+      "Experiment": "技術文書や規則文書から重要なキーワードを自動的に抽出するツールを開発。キーワード抽出アルゴリズムを改良し、鉄道特有の用語や文脈に最適化された結果を提供。",
+      "Interestingness": 7,
+      "Feasibility": 9,
+      "Novelty": 6,
+      "novel": true
+  },
+  {
+      "Name": "multi_agent_assistance",
+      "Title": "マルチエージェント支援システム: 複数視点の情報提供",
+      "Experiment": "複数のAIエージェントが異なる観点で情報を提供するシステムを開発。例えば、一つのエージェントは法規制に焦点を当て、別のエージェントは過去事例に基づく提案を行う。",
+      "Interestingness": 8,
+      "Feasibility": 6,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "incident_prediction_ai",
+      "Title": "事故予測AI: データ駆動型リスク予測システム",
+      "Experiment": "過去の事故データや運行データを分析し、事故発生リスクを予測するAIシステムを開発。リアルタイムの運行データを取り込み、事故予測モデルを常に最新の状態に保つ。",
+      "Interestingness": 9,
+      "Feasibility": 7,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "maintenance_optimization_ai",
+      "Title": "保守最適化AI: データ駆動型保守計画最適化システム",
+      "Experiment": "保守計画の最適化を支援するAIシステムを開発。過去の保守履歴や故障データを分析し、最適な保守スケジュールを提案。保守コストを最小化し、運行安全性を向上させる。",
+      "Interestingness": 9,
+      "Feasibility": 7,
+      "Novelty": 8,
+      "novel": true
+  },
+  {
+      "Name": "specialized_glossary_builder",
+      "Title": "専門用語辞書生成: 鉄道用語の標準化と検索精度向上",
+      "Experiment": "鉄道業界特有の用語を統合し、専門用語辞書を自動生成するシステムを開発。検索システムに統合することで、用語の統一性と検索精度を向上。",
+      "Interestingness": 8,
+      "Feasibility": 7,
+      "Novelty": 7,
+      "novel": true
   }
 ]

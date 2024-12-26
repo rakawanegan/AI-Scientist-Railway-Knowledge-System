@@ -1,3 +1,7 @@
+hydra:
+  run:
+    dir: .
+
 experiment: "railway_command"
 gpus: null  # 使用したいGPUのIDをカンマ区切りで指定（例: "0,1"）。nullの場合はすべてのGPUを使用。
 parallel: 2  # 並列プロセスの数

@@ -128,17 +128,7 @@ def read_pdf_content(pdf_path: str) -> str:
         print(f"An error occurred while reading {pdf_path}: {e}")
     return ""
 
-'''
-Usage
-    ideas = generate_ideas(
-        base_dir,
-        client=client,
-        model=client_model,
-        skip_generation=cfg.skip_idea_generation,
-        max_num_generations=cfg.num_ideas,
-        num_reflections=NUM_REFLECTIONS,
-    )
-'''
+
 def generate_ideas(base_dir: str, client=None, model=None, skip_generation=False, max_num_generations=10, num_reflections=5) -> List[Dict[str, str]]:
 
     if skip_generation:

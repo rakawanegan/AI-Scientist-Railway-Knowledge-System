@@ -1,105 +1,122 @@
-import json
 import os
 import os.path as osp
-
-import matplotlib.colors as mcolors
+import json
+import random
+import re
+from typing import Dict, List
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import PCA
 import numpy as np
 
-# LOAD FINAL RESULTS:
-datasets = ["shakespeare_char", "enwik8", "text8"]
-folders = os.listdir("./")
-final_results = {}
-results_info = {}
-for folder in folders:
-    if folder.startswith("run") and osp.isdir(folder):
-        with open(osp.join(folder, "final_info.json"), "r") as f:
-            final_results[folder] = json.load(f)
-        results_dict = np.load(
-            osp.join(folder, "all_results.npy"), allow_pickle=True
-        ).item()
-        run_info = {}
-        for dataset in datasets:
-            run_info[dataset] = {}
-            val_losses = []
-            train_losses = []
-            for k in results_dict.keys():
-                if dataset in k and "val_info" in k:
-                    run_info[dataset]["iters"] = [
-                        info["iter"] for info in results_dict[k]
-                    ]
-                    val_losses.append([info["val/loss"] for info in results_dict[k]])
-                    train_losses.append(
-                        [info["train/loss"] for info in results_dict[k]]
-                    )
-                mean_val_losses = np.mean(val_losses, axis=0)
-                mean_train_losses = np.mean(train_losses, axis=0)
-                if len(val_losses) > 0:
-                    sterr_val_losses = np.std(val_losses, axis=0) / np.sqrt(
-                        len(val_losses)
-                    )
-                    stderr_train_losses = np.std(train_losses, axis=0) / np.sqrt(
-                        len(train_losses)
-                    )
-                else:
-                    sterr_val_losses = np.zeros_like(mean_val_losses)
-                    stderr_train_losses = np.zeros_like(mean_train_losses)
-                run_info[dataset]["val_loss"] = mean_val_losses
-                run_info[dataset]["train_loss"] = mean_train_losses
-                run_info[dataset]["val_loss_sterr"] = sterr_val_losses
-                run_info[dataset]["train_loss_sterr"] = stderr_train_losses
-        results_info[folder] = run_info
+class AccidentAnalyzer:
+    def __init__(self):
+        """Initialize the analyzer with necessary configurations."""
+        self.regulation_summary = self._load_summary("summary.txt")
 
-# CREATE LEGEND -- ADD RUNS HERE THAT WILL BE PLOTTED
-labels = {
-    "run_0": "Baselines",
-}
+    def _load_summary(self, filepath: str) -> List[str]:
+        """Load regulation summary from a text file."""
+        with open(filepath, 'r') as file:
+            return file.readlines()
+
+    def identify_relevant_regulations(self, accident_report: str) -> str:
+        """Identify the relevant regulation for a given accident report."""
+        # Placeholder for AI-based identification logic
+        for regulation in self.regulation_summary:
+            if any(keyword in accident_report for keyword in regulation.split()):
+                return regulation.strip()
+        return "No matching regulation found."
+
+    def analyze_accident(self, accident_report: str, regulation_content: str) -> str:
+        """Analyze the accident and provide insights."""
+        # Placeholder for AI-based analysis logic
+        analysis = f"Analyzing the report: {accident_report[:50]}\n"
+        analysis += f"Matched Regulation: {regulation_content}\n"
+        analysis += "Proposed Improvement: Enhance safety protocols related to identified issues."
+        return analysis
 
 
-# Create a programmatic color palette
-def generate_color_palette(n):
-    cmap = plt.get_cmap("tab20")
-    return [mcolors.rgb2hex(cmap(i)) for i in np.linspace(0, 1, n)]
+def extract_total_reports(content: str) -> int:
+    """Extract the total number of reports from the content."""
+    matches = re.findall(r'\*\*Report\*\*', content)
+    return len(matches)
 
 
-# Get the list of runs and generate the color palette
-runs = list(labels.keys())
-colors = generate_color_palette(len(runs))
+def get_random_report(content: str, total_reports: int) -> str:
+    """Select a random accident report from the list."""
+    reports = content.split("\n\n")
+    return random.choice(reports) if reports else ""
 
-# Plot 1: Line plot of training loss for each dataset across the runs with labels
-for dataset in datasets:
-    plt.figure(figsize=(10, 6))
-    for i, run in enumerate(runs):
-        iters = results_info[run][dataset]["iters"]
-        mean = results_info[run][dataset]["train_loss"]
-        sterr = results_info[run][dataset]["train_loss_sterr"]
-        plt.plot(iters, mean, label=labels[run], color=colors[i])
-        plt.fill_between(iters, mean - sterr, mean + sterr, color=colors[i], alpha=0.2)
 
-    plt.title(f"Training Loss Across Runs for {dataset} Dataset")
-    plt.xlabel("Iteration")
-    plt.ylabel("Training Loss")
-    plt.legend()
-    plt.grid(True, which="both", ls="-", alpha=0.2)
-    plt.tight_layout()
-    plt.savefig(f"train_loss_{dataset}.png")
-    plt.close()
+def display_report_summary(report: str):
+    """Display a summary of the selected accident report."""
+    summary = re.search(r'Title: (.+?)\nDescription: (.+)', report)
+    if summary:
+        print(f"Title: {summary.group(1)}")
+        print(f"Description: {summary.group(2)}")
+    else:
+        print("Unable to parse the report.")
 
-# Plot 2: Line plot of validation loss for each dataset across the runs with labels
-for dataset in datasets:
-    plt.figure(figsize=(10, 6))
-    for i, run in enumerate(runs):
-        iters = results_info[run][dataset]["iters"]
-        mean = results_info[run][dataset]["val_loss"]
-        sterr = results_info[run][dataset]["val_loss_sterr"]
-        plt.plot(iters, mean, label=labels[run], color=colors[i])
-        plt.fill_between(iters, mean - sterr, mean + sterr, color=colors[i], alpha=0.2)
 
-    plt.title(f"Validation Loss Across Runs for {dataset} Dataset")
-    plt.xlabel("Iteration")
-    plt.ylabel("Validation Loss")
-    plt.legend()
-    plt.grid(True, which="both", ls="-", alpha=0.2)
-    plt.tight_layout()
-    plt.savefig(f"val_loss_{dataset}.png")
-    plt.close()
+def visualize_text_keywords(texts: List[str]):
+    """Visualize keywords from text using WordCloud and PCA."""
+    # TF-IDF Vectorization
+    vectorizer = TfidfVectorizer(stop_words='english', max_features=100)
+    tfidf_matrix = vectorizer.fit_transform(texts)
+
+    # Generate WordCloud
+    feature_array = vectorizer.get_feature_names_out()
+    tfidf_scores = tfidf_matrix.toarray().sum(axis=0)
+    word_freq = dict(zip(feature_array, tfidf_scores))
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(word_freq)
+
+    # Display WordCloud
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.title("Keyword Visualization via WordCloud")
+    plt.show()
+
+    # Dimensionality Reduction with PCA
+    pca = PCA(n_components=2)
+    reduced_data = pca.fit_transform(tfidf_matrix.toarray())
+
+    # Plot PCA
+    plt.figure(figsize=(8, 6))
+    plt.scatter(reduced_data[:, 0], reduced_data[:, 1], alpha=0.7, edgecolors='k')
+    plt.title("TF-IDF Features Visualized with PCA")
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
+    plt.show()
+
+
+def analyze_random_accident():
+    """Analyze a randomly selected accident report."""
+    with open("accident-report.md", "r") as file:
+        content = file.read()
+
+    total_reports = extract_total_reports(content)
+    if total_reports == 0:
+        print("No reports found.")
+        return
+
+    selected_report = get_random_report(content, total_reports)
+    display_report_summary(selected_report)
+
+    analyzer = AccidentAnalyzer()
+    relevant_regulation = analyzer.identify_relevant_regulations(selected_report)
+
+    with open(f"{relevant_regulation}.md", "r") as reg_file:
+        regulation_content = reg_file.read()
+
+    analysis = analyzer.analyze_accident(selected_report, regulation_content)
+    print("\nAnalysis Result:\n", analysis)
+
+    # Visualization Step
+    print("\nVisualizing Report Content...")
+    visualize_text_keywords([selected_report, regulation_content])
+
+
+if __name__ == "__main__":
+    analyze_random_accident()
