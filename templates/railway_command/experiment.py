@@ -39,32 +39,60 @@ def load_config():
     """
     Load configuration values from environment variables or configuration files.
     """
-    config = {
-        "accident_reports_path": "templates/railway_command/docs/accident-report.md",
-        "summary_path": "templates/railway_command/docs/summary.txt",
-        "tool_configs": [
-            "templates/railway_command/docs/tools/code.yaml",
-            "templates/railway_command/docs/tools/incident_rag.yaml",
-            "templates/railway_command/docs/tools/knowledge_rag.yaml",
-            "templates/railway_command/docs/tools/raw_text.yaml",
-            "templates/railway_command/docs/tools/search.yaml",
-        ],
-        "eval_configs": [
-            "templates/railway_command/docs/evals/accuracy.yaml",
-            "templates/railway_command/docs/evals/calculation.yaml",
-            "templates/railway_command/docs/evals/evidence.yaml",
-            "templates/railway_command/docs/evals/expertise.yaml",
-            "templates/railway_command/docs/evals/expression.yaml",
-            "templates/railway_command/docs/evals/relevance.yaml",
-        ],
-        "react_prompt": "templates/railway_command/docs/react_base_prompt.md",
-        "railway_text_path": "data/document/鉄道に関する技術上の基準を定める省令の解釈基準.md",
-        "another_domain_texts": [
-            "data/document/another_document/建築基準法道路関係規定運用指針の解説.md",
-            "data/document/another_document/道路構造令の各規定の解説.md",
-            "data/document/another_document/電気設備の技術基準の解釈.md",
-        ],
-    }
+    if "templates/railway_command" in os.getcwd():
+        config = {
+            "accident_reports_path": "docs/accident-report.md",
+            "summary_path": "docs/summary.txt",
+            "tool_configs": [
+                "docs/tools/code.yaml",
+                "docs/tools/incident_rag.yaml",
+                "docs/tools/knowledge_rag.yaml",
+                "docs/tools/raw_text.yaml",
+                "docs/tools/search.yaml",
+            ],
+            "eval_configs": [
+                "docs/evals/accuracy.yaml",
+                "docs/evals/calculation.yaml",
+                "docs/evals/evidence.yaml",
+                "docs/evals/expertise.yaml",
+                "docs/evals/expression.yaml",
+                "docs/evals/relevance.yaml",
+            ],
+            "react_prompt": "docs/react_base_prompt.md",
+            "railway_text_path": "../../data/document/鉄道に関する技術上の基準を定める省令の解釈基準.md",
+            "another_domain_texts": [
+                "../../data/document/another_document/建築基準法道路関係規定運用指針の解説.md",
+                "../../data/document/another_document/道路構造令の各規定の解説.md",
+                "../../data/document/another_document/電気設備の技術基準の解釈.md",
+            ],
+        }
+    else:
+        config = {
+            "accident_reports_path": "templates/railway_command/docs/accident-report.md",
+            "summary_path": "templates/railway_command/docs/summary.txt",
+            "tool_configs": [
+                "templates/railway_command/docs/tools/code.yaml",
+                "templates/railway_command/docs/tools/incident_rag.yaml",
+                "templates/railway_command/docs/tools/knowledge_rag.yaml",
+                "templates/railway_command/docs/tools/raw_text.yaml",
+                "templates/railway_command/docs/tools/search.yaml",
+            ],
+            "eval_configs": [
+                "templates/railway_command/docs/evals/accuracy.yaml",
+                "templates/railway_command/docs/evals/calculation.yaml",
+                "templates/railway_command/docs/evals/evidence.yaml",
+                "templates/railway_command/docs/evals/expertise.yaml",
+                "templates/railway_command/docs/evals/expression.yaml",
+                "templates/railway_command/docs/evals/relevance.yaml",
+            ],
+            "react_prompt": "templates/railway_command/docs/react_base_prompt.md",
+            "railway_text_path": "data/document/鉄道に関する技術上の基準を定める省令の解釈基準.md",
+            "another_domain_texts": [
+                "data/document/another_document/建築基準法道路関係規定運用指針の解説.md",
+                "data/document/another_document/道路構造令の各規定の解説.md",
+                "data/document/another_document/電気設備の技術基準の解釈.md",
+            ],
+        }
     return config
 
 

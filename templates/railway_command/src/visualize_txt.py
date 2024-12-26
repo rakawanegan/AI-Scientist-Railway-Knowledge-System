@@ -7,17 +7,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import umap
+from dotenv import load_dotenv
 from janome.tokenizer import Tokenizer
-from langchain.openai import OpenAI
+from langchain_openai import OpenAI
 from rank_bm25 import BM25Okapi
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
 from wordcloud import WordCloud
 
-client = OpenAI()
+load_dotenv()
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 
 def get_embedding(text, model="text-embedding-3-small"):
+    client = OpenAI()
     text = text.replace("\n", " ")
     if len(text) == 0:
         return [0] * 1536

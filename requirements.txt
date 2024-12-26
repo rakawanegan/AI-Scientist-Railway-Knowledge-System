@@ -5,7 +5,8 @@ openai
 matplotlib
 pypdf
 pymupdf4llm
-torch
+torch==2.0.1
+autogen-agentchat~=0.2
 numpy
 transformers
 datasets
@@ -34,3 +35,4 @@ aioboto3
 ollama
 tiktoken
 nano_vectordb
+umap-learn

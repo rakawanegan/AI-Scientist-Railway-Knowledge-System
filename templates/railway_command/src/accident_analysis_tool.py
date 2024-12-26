@@ -84,7 +84,7 @@ class AccidentAnalyzer:
     def identify_relevant_regulations(self, accident_report):
         """事故報告書に関連する省令ファイルを特定"""
         try:
-            with open("data/summary.txt", "r", encoding="utf-8") as f:
+            with open("docs/summary.txt", "r", encoding="utf-8") as f:
                 syourei_content = f.read()
 
             prompt = f"""
