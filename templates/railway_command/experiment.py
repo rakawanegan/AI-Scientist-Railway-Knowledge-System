@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 # src/railway_service.py
 import os
 import random

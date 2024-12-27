@@ -96,7 +96,7 @@ class MakeRailwayKnowledgePrompt:
 class MakeRailwayIncidentPrompt:
     def __init__(self, k: int) -> None:
         self.k = k
-        p_file = "./data/RailwayIncidentCase.csv"
+        p_file = "../../data/document/RailwayIncidentCase.csv"
         self.sentences = self._load_csv_file(p_file)
         self.tokenizer = AutoTokenizer.from_pretrained("cl-tohoku/bert-base-japanese")
         self.model = AutoModel.from_pretrained("cl-tohoku/bert-base-japanese")
