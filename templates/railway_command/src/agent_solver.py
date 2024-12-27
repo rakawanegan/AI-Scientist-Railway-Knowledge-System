@@ -37,11 +37,12 @@ def inference(agent, question):
 def evaluate_responses(agent, criteria_with_weights, query, answer):
     with timer("inference"):
         predict = inference(agent, query)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     dict_eval = evaluate_by_llm_with_criteria(
         predict,
         answer,
-        llm=agent.llm,
+        llm=llm,
         question=query,
         criteria_with_weights=criteria_with_weights,
     )

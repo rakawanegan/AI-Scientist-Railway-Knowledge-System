@@ -121,7 +121,7 @@ def extract_keywords_with_bm25(text, top_n=5):
 
 
 def generate_wordcloud(text, extract_keywords, top_n=50):
-    p_font = os.path.abspath("./NotoSansCJKjp-Regular.otf")
+    p_font = os.path.abspath("../../font_assets/NotoSansCJKjp-Regular.otf")
     top_keywords = extract_keywords(text, top_n)
     keyword_dict = dict(zip(top_keywords["word"], top_keywords["value"]))
     wordcloud = WordCloud(
